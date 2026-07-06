@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LLM 양자화 수준과 고등학교 과학 문항 해결 성능</title>
+  <meta name="description" content="발표자와 상호작용하는 정적 웹 프레젠테이션" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div id="app" class="app">
+    <header class="topbar">
+      <button id="menuBtn" class="icon-btn" aria-label="슬라이드 목록 열기">☰</button>
+      <div class="brand">
+        <span class="brand-dot"></span>
+        <span>Quantization × Science QA</span>
+      </div>
+      <div class="topbar-actions">
+        <button id="presenterBtn" class="pill-btn">Presenter</button>
+        <button id="blackoutBtn" class="pill-btn">Blackout</button>
+        <button id="fullscreenBtn" class="pill-btn">Fullscreen</button>
+      </div>
+    </header>
+
+    <aside id="rail" class="rail" aria-label="슬라이드 탐색"></aside>
+
+    <main class="stage" aria-live="polite">
+      <section id="slide" class="slide"></section>
+      <div class="progress-wrap"><div id="progress" class="progress"></div></div>
+    </main>
+
+    <aside id="notesPanel" class="notes-panel" aria-label="발표자 노트">
+      <div class="notes-head">
+        <strong>Presenter Notes</strong>
+        <span id="timer">00:00</span>
+      </div>
+      <div id="notes" class="notes"></div>
+      <div class="notes-controls">
+        <button id="resetTimer" class="pill-btn">타이머 리셋</button>
+        <button id="prevBtn" class="pill-btn">← 이전</button>
+        <button id="nextBtn" class="pill-btn">다음 →</button>
+      </div>
+    </aside>
+
+    <div id="blackout" class="blackout" hidden>
+      <div>BLACKOUT</div>
+      <small>B 또는 버튼으로 해제</small>
+    </div>
+  </div>
+
+  <template id="barChartTemplate">
+    <div class="chart" role="img" aria-label="데이터 차트"></div>
+  </template>
+
+  <script src="./app.js"></script>
+</body>
+</html>
