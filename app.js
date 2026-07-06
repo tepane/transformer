@@ -31,7 +31,7 @@ const slides = [
   {
     title:'title',
     notes:'첫 문장은 짧게 갑니다. “이 발표는 모델을 크게 만드는 이야기가 아니라, 제한된 노트북에서 어떤 양자화 조건이 실제로 쓸 만한가를 검증한 결과입니다.”\n\n청중에게 오늘 볼 기준을 미리 못 박습니다: 정확도, 설명 품질, 속도, 안정성.',
-    html:`<div class="keyhint">← → / Space / B / P / O</div>
+    html:`<div class="keyhint">클릭 · 다음 버튼 · Space · Enter · ← → · B · P · O</div>
       <div class="kicker">2026 격물치지 프로젝트</div>
       <h1>LLM의 양자화 수준은<br/>과학 문제 풀이를 얼마나 흔드는가?</h1>
       <p class="lead">Gemma 4 E4B 모델을 Q8_0 · Q6_K · Q4_K_M으로 비교한 로컬 실행 실험. 결론부터 말하면, <b>정답률 차이는 작고 속도 차이는 컸다.</b></p>
@@ -279,27 +279,62 @@ function updateTimer(){
 }
 setInterval(updateTimer, 500);
 
-document.getElementById('nextBtn').addEventListener('click', next);
-document.getElementById('prevBtn').addEventListener('click', prev);
-document.getElementById('resetTimer').addEventListener('click', () => { startTime = Date.now(); updateTimer(); });
-document.getElementById('presenterBtn').addEventListener('click', () => {
+safeOn('nextBtn', 'click', next);
+safeOn('prevBtn', 'click', prev);
+safeOn('nextFloat', 'click', next);
+safeOn('prevFloat', 'click', prev);
+safeOn('resetTimer', 'click', () => { startTime = Date.now(); updateTimer(); });
+safeOn('presenterBtn', 'click', () => {
   presenter = !presenter;
   notesPanel.style.display = presenter ? 'flex' : 'none';
 });
-document.getElementById('fullscreenBtn').addEventListener('click', () => {
+safeOn('fullscreenBtn', 'click', () => {
   if(!document.fullscreenElement) document.documentElement.requestFullscreen?.(); else document.exitFullscreen?.();
+  document.activeElement?.blur?.();
+  document.body.focus?.();
 });
-document.getElementById('blackoutBtn').addEventListener('click', toggleBlackout);
-document.getElementById('menuBtn').addEventListener('click', () => railEl.classList.toggle('open'));
-function toggleBlackout(){ document.getElementById('blackout').hidden = !document.getElementById('blackout').hidden; }
+safeOn('blackoutBtn', 'click', toggleBlackout);
+safeOn('menuBtn', 'click', () => railEl.classList.toggle('open'));
+function safeOn(id, event, handler){
+  const el = document.getElementById(id);
+  if(el) el.addEventListener(event, handler);
+}
+function toggleBlackout(){
+  const el = document.getElementById('blackout');
+  if(el) el.hidden = !el.hidden;
+}
 
-document.addEventListener('keydown', e => {
-  if(e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); next(); }
-  if(e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prev(); }
-  if(e.key.toLowerCase() === 'b') toggleBlackout();
-  if(e.key.toLowerCase() === 'p') document.getElementById('presenterBtn').click();
-  if(e.key.toLowerCase() === 'o') railEl.classList.toggle('open');
-  if(e.key === 'Home') go(0);
-  if(e.key === 'End') go(slides.length-1);
+function handleKey(e) {
+  if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
+  const key = e.key;
+  const code = e.code;
+  const lower = typeof key === 'string' ? key.toLowerCase() : '';
+  const forward = key === 'ArrowRight' || key === 'ArrowDown' || key === 'PageDown' || key === 'Enter' || key === ' ' || key === 'Spacebar' || code === 'Space' || lower === 'n' || lower === 'l';
+  const back = key === 'ArrowLeft' || key === 'ArrowUp' || key === 'PageUp' || lower === 'j';
+  if(forward) { e.preventDefault(); next(); return; }
+  if(back) { e.preventDefault(); prev(); return; }
+  if(lower === 'b') { e.preventDefault(); toggleBlackout(); return; }
+  if(lower === 'p') { e.preventDefault(); document.getElementById('presenterBtn')?.click(); return; }
+  if(lower === 'o') { e.preventDefault(); railEl.classList.toggle('open'); return; }
+  if(key === 'Home') { e.preventDefault(); go(0); return; }
+  if(key === 'End') { e.preventDefault(); go(slides.length-1); return; }
+}
+window.addEventListener('keydown', handleKey, true);
+document.addEventListener('click', (e) => {
+  const interactive = e.target.closest?.('button, a, input, textarea, select, [role=button]');
+  if(interactive) return;
+  const blackout = document.getElementById('blackout');
+  if(blackout && !blackout.hidden) { toggleBlackout(); return; }
+  if(e.target.closest?.('.slide, .stage')) next();
 });
+let touchStartX = null;
+document.addEventListener('touchstart', e => { touchStartX = e.changedTouches?.[0]?.clientX ?? null; }, {passive:true});
+document.addEventListener('touchend', e => {
+  if(touchStartX === null) return;
+  const endX = e.changedTouches?.[0]?.clientX ?? touchStartX;
+  const dx = endX - touchStartX;
+  if(Math.abs(dx) > 50) dx < 0 ? next() : prev();
+  touchStartX = null;
+}, {passive:true});
+window.addEventListener('load', () => document.body.focus?.());
 render();
